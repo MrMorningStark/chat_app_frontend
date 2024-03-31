@@ -1,9 +1,7 @@
-String generateRoomId(String userId1, String userId2) {
-  // Concatenate user IDs and hash the result to generate a unique room ID
-  final combinedIds = userId1.compareTo(userId2) < 0
-      ? '$userId1-$userId2'
-      : '$userId2-$userId1';
-  return combinedIds.hashCode.toString();
+String generateConversationId(String uid1, String uid2) {
+  List<String> sortedIds = [uid1, uid2]..sort();
+  String sortedIdsString = sortedIds.join('-');
+  return sortedIdsString;
 }
 
 String formatDate(int millisecondsSinceEpoch) {
@@ -22,8 +20,8 @@ String formatDateForRecentChats(int millisecondsSinceEpoch) {
   String formattedDate = "";
   if (dateTime.day == DateTime.now().day) {
     formattedDate = formatDate(millisecondsSinceEpoch);
-  } else if (dateTime.day == DateTime.now().subtract(const Duration(days: 1))
-      .day) {
+  } else if (dateTime.day ==
+      DateTime.now().subtract(const Duration(days: 1)).day) {
     formattedDate = "Yesterday";
   } else {
     formattedDate = "${dateTime.day}/${dateTime.month}/${dateTime.year}";

@@ -1,6 +1,3 @@
-import 'package:WhatsApp/enumeration.dart';
-import 'package:WhatsApp/models/user_model.dart';
-
 class ApiResponse {
   final bool success;
   final dynamic data;
@@ -22,49 +19,36 @@ class ApiResponse {
 }
 
 class Chat {
-  final int type;
-  int status;
-  final String text;
+  final String message;
   final int createdAt;
-  final MyUser user;
-  int unReadMessages = 0;
+  final String createdBy;
 
   Chat({
-    required this.type,
-    required this.status,
-    required this.text,
+    required this.message,
     required this.createdAt,
-    required this.user,
-    this.unReadMessages = 0,
+    required this.createdBy,
   });
 
   factory Chat.fromJson(Map<String, dynamic> json) {
     return Chat(
-      type: json['type'] ?? MessageType.self,
-      status: json['status'] ?? MessageStatus.sent,
-      text: json['text'] ?? "",
+      message: json['message'] ?? "",
       createdAt: json['createdAt'] ?? DateTime.now().millisecondsSinceEpoch,
-      user: MyUser.fromJson(json['user']),
-      unReadMessages: json['unReadMessages'] ?? 0,
+      createdBy: json['createdBy'] ?? json['fromUID'],
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'type': type,
-      'status': status,
-      'text': text,
+      'message': message,
       'createdAt': createdAt,
-      'user': user.toJson(),
-      'unReadMessages': unReadMessages,
+      'createdBy': createdBy,
     };
   }
 }
 
 class SocketService {
-  final String Function(String userId1, String userId2) initiateChat;
-  final void Function(
-          String roomID, MyUser userID, String message, int unReadMessages)
+  final Future<void> Function(String toUser) initiateChat;
+  final void Function({required String toUID, required String message})
       sendMessage;
   final void Function(String roomID) leaveChat;
 

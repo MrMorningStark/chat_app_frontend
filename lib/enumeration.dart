@@ -1,7 +1,5 @@
-import 'package:WhatsApp/models/user_model.dart';
 import 'package:WhatsApp/pages/contacts_page.dart';
 import 'package:WhatsApp/constant.dart';
-import 'package:WhatsApp/pages/chat_page.dart';
 import 'package:WhatsApp/pages/home_page.dart';
 import 'package:WhatsApp/pages/login_page.dart';
 import 'package:WhatsApp/pages/search_page.dart';

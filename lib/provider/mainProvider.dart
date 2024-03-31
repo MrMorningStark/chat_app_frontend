@@ -1,6 +1,4 @@
 import 'package:WhatsApp/api/api.dart';
-import 'package:WhatsApp/db/db.dart';
-import 'package:WhatsApp/enumeration.dart';
 import 'package:WhatsApp/models/basic_models.dart';
 import 'package:WhatsApp/models/user_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -58,25 +56,12 @@ class ChatNotifier extends StateNotifier<List<Chat>> {
     state = [...state, chat];
   }
 
+  void setChat(List<Chat> chat) {
+    state = chat;
+  }
+
   void clearChat() {
     state = [];
-  }
-
-  changeMessageStatus(String roomID, int status) async {
-    List<Chat>? chats =
-        await DatabaseHelper().changeMessageStatus(roomID, status);
-    if (chats != null) {
-      state = chats;
-    }
-  }
-
-  loadChatFromLocalStorage(String key, MyUser user) async {
-    state = await DatabaseHelper().loadChat(key, user);
-  }
-
-  saveChatToLocalStorage(String key, Chat message) async {
-    Chat chat = await DatabaseHelper().saveChat(key, message);
-    state = [chat, ...state];
   }
 }
 
@@ -89,8 +74,20 @@ class RecentChatNotifier extends StateNotifier<List<MyUser>> {
   RecentChatNotifier() : super([]);
 
   refreshRecentChats(MyUser currUser) async {
-    List<MyUser> recentChats = await DatabaseHelper().loadRecentChats(currUser);
-    state = recentChats;
+    // List<MyUser> recentChats = await DatabaseHelper().loadRecentChats(currUser);
+    // state = recentChats;
   }
+}
 
+final userChatProvider =
+    StateNotifierProvider<UserChatNotifier, List<Chat>>((ref) {
+  return UserChatNotifier();
+});
+
+class UserChatNotifier extends StateNotifier<List<Chat>> {
+  UserChatNotifier() : super([]);
+
+  addChat(Chat chat) async {
+    state = [...state, chat];
+  }
 }

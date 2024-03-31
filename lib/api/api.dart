@@ -1,8 +1,5 @@
-import 'dart:convert';
-
 import 'package:WhatsApp/constant.dart';
 import 'package:WhatsApp/models/basic_models.dart';
-import 'package:WhatsApp/models/user_model.dart';
 import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -42,6 +39,17 @@ class API {
       var finalEndPoint = "${BASE_URL}data/usersExist";
       var result =
           await dio.post(Uri.encodeFull(finalEndPoint), data: {"users": users});
+      return ApiResponse.fromJson(result.data);
+    } catch (e) {
+      return ApiResponse(success: false, data: [], message: e.toString());
+    }
+  }
+
+  static Future<ApiResponse> loadConversation(
+      {required String conversationId}) async {
+    try {
+      var finalEndPoint = "${BASE_URL}data/loadConversation/$conversationId";
+      var result = await dio.post(Uri.encodeFull(finalEndPoint));
       return ApiResponse.fromJson(result.data);
     } catch (e) {
       return ApiResponse(success: false, data: [], message: e.toString());

@@ -1,9 +1,7 @@
 import 'dart:convert';
 import 'package:WhatsApp/enumeration.dart';
-import 'package:WhatsApp/helper/helper.dart';
 import 'package:WhatsApp/models/basic_models.dart';
 import 'package:WhatsApp/models/user_model.dart';
-import 'package:WhatsApp/provider/mainProvider.dart';
 import 'package:localstorage/localstorage.dart';
 
 class DatabaseHelper {
@@ -51,23 +49,23 @@ class DatabaseHelper {
     return null;
   }
 
-  Future<List<MyUser>> loadRecentChats(MyUser currUser) async {
-    var res = await getValue(LocalStorageKey.RECENT_CHATS);
-    if (res.runtimeType == bool) {
-      return [];
-    } else if (res != null) {
-      List<MyUser> recentChats =
-          List<MyUser>.from(res.map((e) => MyUser.fromJson(e)));
-      for (var i = 0; i < recentChats.length; i++) {
-        Chat? chat = await getLastMessage(
-            generateRoomId(recentChats[i].uid, currUser.uid));
-        recentChats[i].lastMessage = chat;
-      }
-      return recentChats;
-    } else {
-      return [];
-    }
-  }
+  // Future<List<MyUser>> loadRecentChats(MyUser currUser) async {
+  //   var res = await getValue(LocalStorageKey.RECENT_CHATS);
+  //   if (res.runtimeType == bool) {
+  //     return [];
+  //   } else if (res != null) {
+  //     List<MyUser> recentChats =
+  //         List<MyUser>.from(res.map((e) => MyUser.fromJson(e)));
+  //     for (var i = 0; i < recentChats.length; i++) {
+  //       Chat? chat = await getLastMessage(
+  //           generateRoomId(recentChats[i].uid, currUser.uid));
+  //       recentChats[i].lastMessage = chat;
+  //     }
+  //     return recentChats;
+  //   } else {
+  //     return [];
+  //   }
+  // }
 
   Future<List<MyUser>> saveRecentChats(MyUser user) async {
     var res = await getValue(LocalStorageKey.RECENT_CHATS);
@@ -112,41 +110,41 @@ class DatabaseHelper {
     }
   }
 
-  Future<List<Chat>?> changeMessageStatus(String roomID, int status) async {
-    try {
-      await getValue(roomID);
-      if (status == MessageStatus.sent) {
-        return null;
-      } else {
-        var res = await getValue(roomID);
-        if (res.runtimeType == bool) {
-          return null;
-        } else if (res != null) {
-          List<Chat> chats = List<Chat>.from(res.map((e) => Chat.fromJson(e)));
-          for (Chat chat in chats) {
-            if (chat.status == MessageStatus.sent) {
-              chat.status = status == MessageStatus.read
-                  ? status
-                  : MessageStatus.delivered;
-            } else if (chat.status == MessageStatus.delivered) {
-              chat.status = status == MessageStatus.read
-                  ? status
-                  : MessageStatus.delivered;
-            } else {
-              chat.status = MessageStatus.read;
-            }
-          }
-          await setValue(roomID, chats);
-          return chats;
-        } else {
-          return null;
-        }
-      }
-    } catch (e) {
-      print(e);
-      return null;
-    }
-  }
+  // Future<List<Chat>?> changeMessageStatus(String roomID, int status) async {
+  //   try {
+  //     await getValue(roomID);
+  //     if (status == MessageStatus.sent) {
+  //       return null;
+  //     } else {
+  //       var res = await getValue(roomID);
+  //       if (res.runtimeType == bool) {
+  //         return null;
+  //       } else if (res != null) {
+  //         List<Chat> chats = List<Chat>.from(res.map((e) => Chat.fromJson(e)));
+  //         for (Chat chat in chats) {
+  //           if (chat.status == MessageStatus.sent) {
+  //             chat.status = status == MessageStatus.read
+  //                 ? status
+  //                 : MessageStatus.delivered;
+  //           } else if (chat.status == MessageStatus.delivered) {
+  //             chat.status = status == MessageStatus.read
+  //                 ? status
+  //                 : MessageStatus.delivered;
+  //           } else {
+  //             chat.status = MessageStatus.read;
+  //           }
+  //         }
+  //         await setValue(roomID, chats);
+  //         return chats;
+  //       } else {
+  //         return null;
+  //       }
+  //     }
+  //   } catch (e) {
+  //     print(e);
+  //     return null;
+  //   }
+  // }
 
   Future<Chat?> getLastMessage(String roomID) async {
     try {

@@ -1,16 +1,12 @@
-import 'package:WhatsApp/db/db.dart';
-import 'package:WhatsApp/enumeration.dart';
 import 'package:WhatsApp/helper/helper.dart';
-import 'package:WhatsApp/models/basic_models.dart';
 import 'package:WhatsApp/models/user_model.dart';
 import 'package:WhatsApp/pages/chat_page.dart';
-import 'package:WhatsApp/pages/contacts_page.dart';
 import 'package:WhatsApp/provider/mainProvider.dart';
+import 'package:WhatsApp/provider/socketProvider.dart';
 import 'package:WhatsApp/widgets/contactImage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:url_launcher/url_launcher_string.dart';
 
 class ContactCard extends ConsumerWidget {
   final String? photoURL;
@@ -48,13 +44,13 @@ class ContactCard extends ConsumerWidget {
           return;
         } else {
           MyUser currUser = ref.read(userProvider)!;
-          await ref.read(chatProvider.notifier).loadChatFromLocalStorage(
-              generateRoomId(currUser.uid, user!.uid), user!);
-          ref.read(recentChatProvider.notifier).refreshRecentChats(currUser);
+          await ref
+              .read(socketProvider)
+              .initiateChat(generateConversationId(currUser.uid, user!.uid));
           Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => ChatPage(user2: user!),
+                builder: (context) => ChatPage(toUser: user!),
               ));
         }
       },
@@ -80,34 +76,35 @@ class ContactCard extends ConsumerWidget {
                     letterSpacing: 0.5),
               ),
             ),
-            if (user!.lastMessage != null &&
-                user!.lastMessage!.unReadMessages != 0)
-              Positioned(
-                bottom: 0,
-                right: 5,
-                child: Container(
-                  height: 25,
-                  width: 25,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context)
-                        .floatingActionButtonTheme
-                        .backgroundColor,
-                    borderRadius: BorderRadius.circular(12.5),
-                  ),
-                  child: Center(
-                    child: Text(
-                      user!.lastMessage!.unReadMessages > 99
-                          ? '99+'
-                          : user!.lastMessage!.unReadMessages.toString(),
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w400,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+            // if (user!.lastMessage != null &&
+            //     user!.lastMessage!.unReadMessages != 0)
+            //   Positioned(
+            //     bottom: 0,
+            //     right: 5,
+            //     child: Container(
+            //       height: 25,
+            //       width: 25,
+            //       decoration: BoxDecoration(
+            //         color: Theme.of(context)
+            //             .floatingActionButtonTheme
+            //             .backgroundColor,
+            //         borderRadius: BorderRadius.circular(12.5),
+            //       ),
+            //       child: Center(
+            //         child: Text(
+            //           user!.lastMessage!.unReadMessages > 99
+            //               ? '99+'
+            //               : user!.lastMessage!.unReadMessages.toString(),
+            //           style: const TextStyle(
+            //             fontSize: 12,
+            //             fontWeight: FontWeight.w400,
+            //             color: Colors.white,
+            //           ),
+            //         ),
+            //       ),
+            //     ),
+            //   ),
+
             Positioned(
               top: 3,
               right: 5,
@@ -120,42 +117,43 @@ class ContactCard extends ConsumerWidget {
                 ),
               ),
             ),
-            Positioned(
-              top: 27,
-              left: 65,
-              child: Row(
-                children: [
-                  if (user?.lastMessage != null &&
-                      user?.lastMessage?.type == MessageType.self)
-                    Row(
-                      children: [
-                        Icon(
-                          user!.lastMessage!.status == MessageStatus.sent
-                              ? Icons.done_rounded
-                              : Icons.done_all_rounded,
-                          color: user!.lastMessage!.status == MessageStatus.read
-                              ? Colors.blue
-                              : Theme.of(context).hintColor,
-                          size: 18,
-                        ),
-                        const SizedBox(width: 5),
-                      ],
-                    ),
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width - 200,
-                    child: Text(
-                      user?.lastMessage?.text ?? user?.email ?? caption ?? "",
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w400,
-                        color: Theme.of(context).hintColor,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            // Positioned(
+            //   top: 27,
+            //   left: 65,
+            //   child: Row(
+            //     children: [
+            //       if (user?.lastMessage != null &&
+            //           user?.lastMessage?.type == MessageType.self)
+            //         Row(
+            //           children: [
+            //             Icon(
+            //               user!.lastMessage!.status == MessageStatus.sent
+            //                   ? Icons.done_rounded
+            //                   : Icons.done_all_rounded,
+            //               color: user!.lastMessage!.status == MessageStatus.read
+            //                   ? Colors.blue
+            //                   : Theme.of(context).hintColor,
+            //               size: 18,
+            //             ),
+            //             const SizedBox(width: 5),
+            //           ],
+            //         ),
+            //       SizedBox(
+            //         width: MediaQuery.of(context).size.width - 200,
+            //         child: Text(
+            //           user?.lastMessage?.text ?? user?.email ?? caption ?? "",
+            //           overflow: TextOverflow.ellipsis,
+            //           style: TextStyle(
+            //             fontSize: 13,
+            //             fontWeight: FontWeight.w400,
+            //             color: Theme.of(context).hintColor,
+            //           ),
+            //         ),
+            //       ),
+            //     ],
+            //   ),
+            // ),
+
             if (!user!.isUserExist)
               Positioned(
                 top: 10,

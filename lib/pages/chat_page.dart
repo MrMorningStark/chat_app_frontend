@@ -8,21 +8,20 @@ import 'package:WhatsApp/provider/socketProvider.dart';
 import 'package:WhatsApp/widgets/chatBubble.dart';
 import 'package:WhatsApp/widgets/contactImage.dart';
 import 'package:audioplayers/audioplayers.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ChatPage extends ConsumerStatefulWidget {
-  final MyUser user2;
-  const ChatPage({super.key, required this.user2});
+  final MyUser toUser;
+  const ChatPage({super.key, required this.toUser});
 
   @override
   ConsumerState<ChatPage> createState() => _ChatPageState();
 }
 
 class _ChatPageState extends ConsumerState<ChatPage> {
-  late MyUser user1;
-  late MyUser user2;
+  late MyUser currUser;
+  late MyUser toUser;
   late SocketService mySocketProvider;
   late List<Chat> chats = [];
 
@@ -32,7 +31,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   List<MyUser> users = [];
   bool isLoading = false;
   bool isChatBottom = true;
-  String? roomID = null;
   String? chatDate = '';
 
   scrollToChatBottom() {
@@ -44,17 +42,13 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   @override
   void initState() {
     super.initState();
-    user1 = ref.read(userProvider)!;
-    user2 = widget.user2;
+    currUser = ref.read(userProvider)!;
+    toUser = widget.toUser;
     mySocketProvider = ref.read(socketProvider);
-    setState(() {
-      roomID = mySocketProvider.initiateChat(user1.uid, user2.uid);
-    });
   }
 
   @override
   void dispose() {
-    mySocketProvider.leaveChat(roomID!);
     chatController.dispose();
     super.dispose();
   }
@@ -73,26 +67,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     }
     if (chatController.text.trim().isNotEmpty) {
       playMessageSentSound();
-      mySocketProvider.sendMessage(roomID!, user2, chatController.text.trim(),
-          chats.isNotEmpty ? chats[0].unReadMessages++ : 0);
-      setState(() {
-        ref.read(chatProvider.notifier).saveChatToLocalStorage(
-            generateRoomId(user1.uid, user2.uid),
-            Chat(
-              text: chatController.text.trim(),
-              createdAt: DateTime.now().millisecondsSinceEpoch,
-              user: MyUser(
-                uid: FirebaseAuth.instance.currentUser!.uid,
-                displayName: FirebaseAuth.instance.currentUser!.displayName!,
-                photoURL: FirebaseAuth.instance.currentUser!.photoURL!,
-                phoneNumber: FirebaseAuth.instance.currentUser!.phoneNumber,
-                email: FirebaseAuth.instance.currentUser!.email!,
-              ),
-              type: MessageType.self,
-              status: MessageStatus.sent,
-              unReadMessages: 0,
-            ));
-      });
+      mySocketProvider.sendMessage(
+          toUID: toUser.uid, message: chatController.text.trim());
       chatController.clear();
     }
   }
@@ -126,7 +102,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                     size: Theme.of(context).appBarTheme.iconTheme!.size,
                   ),
                   ContactImage(
-                    photoURL: user2.photoURL,
+                    photoURL: toUser.photoURL,
                     size: 35,
                     onTapImage: () {
                       Navigator.pop(context);
@@ -136,7 +112,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
               ),
             ),
             Text(
-              user2.displayName,
+              toUser.displayName,
               style: const TextStyle(
                 fontSize: 17,
                 fontWeight: FontWeight.normal,
@@ -185,7 +161,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                   right: 8,
                   bottom: MediaQuery.of(context).viewInsets.bottom + 3),
               child: ListView.builder(
-                reverse: true,
+                reverse: false,
                 padding: const EdgeInsets.only(bottom: 5),
                 shrinkWrap: true,
                 controller: chatScrollController,
@@ -208,12 +184,15 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                       children: [
                         Text(formattedDate),
                         ChatBubble(
-                          message: chats[index].text,
-                          type: chats[index].type,
-                          status: chats[index].status,
+                          message: chats[index].message,
+                          type: chats[index].createdBy == currUser.uid
+                              ? MessageType.self
+                              : MessageType.other,
+                          status: MessageStatus.sent,
                           showNip: index == 0
                               ? true
-                              : chats[index - 1].type == chats[index].type
+                              : chats[index - 1].createdBy ==
+                                      chats[index].createdBy
                                   ? false
                                   : true,
                           createdAt: chats[index].createdAt,
@@ -222,12 +201,14 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                     );
                   } else {
                     return ChatBubble(
-                      message: chats[index].text,
-                      type: chats[index].type,
-                      status: chats[index].status,
+                      message: chats[index].message,
+                      type: chats[index].createdBy == currUser.uid
+                          ? MessageType.self
+                          : MessageType.other,
+                      status: MessageStatus.sent,
                       showNip: index == 0
                           ? true
-                          : chats[index - 1].type == chats[index].type
+                          : chats[index - 1].createdBy == chats[index].createdBy
                               ? false
                               : true,
                       createdAt: chats[index].createdAt,
