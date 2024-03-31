@@ -1,6 +1,7 @@
 import 'package:WhatsApp/helper/helper.dart';
 import 'package:WhatsApp/models/user_model.dart';
 import 'package:WhatsApp/provider/mainProvider.dart';
+import 'package:WhatsApp/provider/socketProvider.dart';
 import 'package:WhatsApp/widgets/contactCard.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -18,6 +19,7 @@ class _RecentChatsState extends ConsumerState<RecentChats> {
   @override
   void initState() {
     super.initState();
+    ref.read(socketProvider);
     ref
         .read(recentChatProvider.notifier)
         .refreshRecentChats(ref.read(userProvider)!);

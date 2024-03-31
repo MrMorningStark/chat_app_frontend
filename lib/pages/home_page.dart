@@ -4,26 +4,15 @@ import 'package:WhatsApp/components/RecentChats.dart';
 import 'package:WhatsApp/pages/welcome_page.dart';
 import 'package:WhatsApp/provider/socketProvider.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class HomePage extends ConsumerWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    ref.read(socketProvider);
-    return const Home();
-  }
+  State<HomePage> createState() => _HomePageState();
 }
 
-class Home extends StatefulWidget {
-  const Home({super.key});
-
-  @override
-  State<Home> createState() => _HomeState();
-}
-
-class _HomeState extends State<Home> with TickerProviderStateMixin {
+class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   late TabController _tabController;
 
   @override
