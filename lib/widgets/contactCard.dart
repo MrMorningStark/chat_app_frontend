@@ -44,7 +44,7 @@ class ContactCard extends ConsumerWidget {
           return;
         } else {
           MyUser currUser = ref.read(userProvider)!;
-          await ref
+          ref
               .read(socketProvider)
               .initiateChat(generateConversationId(currUser.uid, user!.uid));
           Navigator.push(

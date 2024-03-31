@@ -50,7 +50,7 @@ class API {
     try {
       var finalEndPoint = "${BASE_URL}data/loadConversation/$conversationId";
       var result = await dio.post(Uri.encodeFull(finalEndPoint));
-      return ApiResponse.fromJson(result.data);
+      return ApiResponse. fromJson(result.data);
     } catch (e) {
       return ApiResponse(success: false, data: [], message: e.toString());
     }
