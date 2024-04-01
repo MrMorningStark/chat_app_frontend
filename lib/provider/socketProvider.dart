@@ -17,11 +17,13 @@ final socketProvider = Provider((ref) {
 
   socket.connect();
 
+  MyUser currUser = ref.read(userProvider)!;
+
   socket.on('connect', (_) {
     print('Connected to the socket server');
+    //send currUser uid to server
+    socket.emit(SOCKET_ON.USER_ONLINE, {'uid': currUser.uid});
   });
-
-  MyUser currUser = ref.read(userProvider)!;
 
   Future<void> initiateChat(String conversationId) async {
     ApiResponse apiResponse =
@@ -49,15 +51,21 @@ final socketProvider = Provider((ref) {
   // Receive message that was sent by another user
   socket.on(currUser.uid, (data) {
     // toUID | fromUID | message | createdAt
+    playMessageRecievedSound();
     ref.read(chatProvider.notifier).addChat(Chat.fromJson(data));
   });
 
   void leaveChat(String toUID) {
     ref.read(chatProvider.notifier).setChat([]);
+    ref.read(recentChatProvider.notifier).loadRecentChats();
     // socket.emit(SOCKET_ON.LEAVE_CHAT, {"toUID": toUID});
     print('Left chat');
   }
 
+  socket.on("error", (data) {
+    socket.connect();
+  });
+  
   // when app goes in background or is closed disconnect from socket
   socket.on("disconnect", (_) {
     print('Disconnected from the socket server');

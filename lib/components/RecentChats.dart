@@ -20,7 +20,6 @@ class _RecentChatsState extends ConsumerState<RecentChats> {
   void initState() {
     super.initState();
     ref.read(socketProvider);
-    ref.read(recentChatProvider.notifier).loadRecentChats();
   }
 
   @override

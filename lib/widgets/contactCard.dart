@@ -44,24 +44,11 @@ class ContactCard extends ConsumerWidget {
           return;
         } else {
           MyUser currUser = ref.read(userProvider)!;
-          ref
+          await ref
               .read(socketProvider)
               .initiateChat(generateConversationId(currUser.uid, user!.uid));
-          Navigator.push(
-              context,
-              PageRouteBuilder(
-                pageBuilder: (_, __, ___) => ChatPage(toUser: user!),
-                transitionsBuilder:
-                    (context, animation, secondaryAnimation, child) {
-                  return SlideTransition(
-                    position: Tween<Offset>(
-                      begin: const Offset(1.0, 0.0),
-                      end: Offset.zero,
-                    ).animate(animation),
-                    child: child,
-                  );
-                },
-              ));
+          Navigator.push(context,
+              MaterialPageRoute(builder: (_) => ChatPage(toUser: user!)));
         }
       },
       child: Container(

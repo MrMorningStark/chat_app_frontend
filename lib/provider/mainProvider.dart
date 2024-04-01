@@ -53,11 +53,11 @@ class ChatNotifier extends StateNotifier<List<Chat>> {
   ChatNotifier() : super([]);
 
   void addChat(Chat chat) {
-    state = [...state, chat];
+    state = [chat, ...state];
   }
 
   void setChat(List<Chat> chat) {
-    state = chat;
+    state = chat.reversed.toList();
   }
 
   void clearChat() {
@@ -71,7 +71,9 @@ final recentChatProvider =
 });
 
 class RecentChatNotifier extends StateNotifier<List<MyUser>> {
-  RecentChatNotifier() : super([]);
+  RecentChatNotifier() : super([]) {
+    loadRecentChats();
+  }
 
   loadRecentChats() async {
     ApiResponse response = await API.loadRecentChats();

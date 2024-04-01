@@ -34,9 +34,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   String? chatDate = '';
 
   scrollToChatBottom() {
-    setState(() {
-      chatScrollController.jumpTo(0);
-    });
+    chatScrollController.jumpTo(0);
   }
 
   @override
@@ -45,6 +43,9 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     currUser = ref.read(userProvider)!;
     toUser = widget.toUser;
     mySocketProvider = ref.read(socketProvider);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      scrollToChatBottom();
+    });
   }
 
   @override
@@ -162,7 +163,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                   right: 8,
                   bottom: MediaQuery.of(context).viewInsets.bottom + 3),
               child: ListView.builder(
-                reverse: false,
+                reverse: true,
                 padding: const EdgeInsets.only(bottom: 5),
                 shrinkWrap: true,
                 controller: chatScrollController,
@@ -190,12 +191,9 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                               ? MessageType.self
                               : MessageType.other,
                           status: MessageStatus.sent,
-                          showNip: index == 0
-                              ? true
-                              : chats[index - 1].createdBy ==
-                                      chats[index].createdBy
-                                  ? false
-                                  : true,
+                          showNip: index == chats.length - 1 ||
+                              chats[index + 1].createdBy !=
+                                  chats[index].createdBy,
                           createdAt: chats[index].createdAt,
                         )
                       ],
@@ -207,11 +205,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                           ? MessageType.self
                           : MessageType.other,
                       status: MessageStatus.sent,
-                      showNip: index == 0
-                          ? true
-                          : chats[index - 1].createdBy == chats[index].createdBy
-                              ? false
-                              : true,
+                      showNip: index == chats.length - 1 ||
+                          chats[index + 1].createdBy != chats[index].createdBy,
                       createdAt: chats[index].createdAt,
                     );
                   }
