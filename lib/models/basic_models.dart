@@ -50,7 +50,7 @@ class SocketService {
   final Future<void> Function(String toUser) initiateChat;
   final void Function({required String toUID, required String message})
       sendMessage;
-  final void Function(String roomID) leaveChat;
+  final void Function(String toUID) leaveChat;
 
   SocketService({
     required this.initiateChat,

@@ -73,9 +73,15 @@ final recentChatProvider =
 class RecentChatNotifier extends StateNotifier<List<MyUser>> {
   RecentChatNotifier() : super([]);
 
-  refreshRecentChats(MyUser currUser) async {
-    // List<MyUser> recentChats = await DatabaseHelper().loadRecentChats(currUser);
-    // state = recentChats;
+  loadRecentChats() async {
+    ApiResponse response = await API.loadRecentChats();
+    if (response.success) {
+      List<MyUser> recentChats =
+          List<MyUser>.from(response.data.map((e) => MyUser.fromJson(e)));
+      state = recentChats;
+    } else {
+      state = [];
+    }
   }
 }
 

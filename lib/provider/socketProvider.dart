@@ -52,8 +52,9 @@ final socketProvider = Provider((ref) {
     ref.read(chatProvider.notifier).addChat(Chat.fromJson(data));
   });
 
-  void leaveChat(String roomID) {
-    socket.emit(SOCKET_ON.LEAVE_CHAT, {"roomID": roomID});
+  void leaveChat(String toUID) {
+    ref.read(chatProvider.notifier).setChat([]);
+    // socket.emit(SOCKET_ON.LEAVE_CHAT, {"toUID": toUID});
     print('Left chat');
   }
 

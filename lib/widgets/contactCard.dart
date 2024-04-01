@@ -49,8 +49,18 @@ class ContactCard extends ConsumerWidget {
               .initiateChat(generateConversationId(currUser.uid, user!.uid));
           Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (context) => ChatPage(toUser: user!),
+              PageRouteBuilder(
+                pageBuilder: (_, __, ___) => ChatPage(toUser: user!),
+                transitionsBuilder:
+                    (context, animation, secondaryAnimation, child) {
+                  return SlideTransition(
+                    position: Tween<Offset>(
+                      begin: const Offset(1.0, 0.0),
+                      end: Offset.zero,
+                    ).animate(animation),
+                    child: child,
+                  );
+                },
               ));
         }
       },
@@ -117,42 +127,47 @@ class ContactCard extends ConsumerWidget {
                 ),
               ),
             ),
-            // Positioned(
-            //   top: 27,
-            //   left: 65,
-            //   child: Row(
-            //     children: [
-            //       if (user?.lastMessage != null &&
-            //           user?.lastMessage?.type == MessageType.self)
-            //         Row(
-            //           children: [
-            //             Icon(
-            //               user!.lastMessage!.status == MessageStatus.sent
-            //                   ? Icons.done_rounded
-            //                   : Icons.done_all_rounded,
-            //               color: user!.lastMessage!.status == MessageStatus.read
-            //                   ? Colors.blue
-            //                   : Theme.of(context).hintColor,
-            //               size: 18,
-            //             ),
-            //             const SizedBox(width: 5),
-            //           ],
-            //         ),
-            //       SizedBox(
-            //         width: MediaQuery.of(context).size.width - 200,
-            //         child: Text(
-            //           user?.lastMessage?.text ?? user?.email ?? caption ?? "",
-            //           overflow: TextOverflow.ellipsis,
-            //           style: TextStyle(
-            //             fontSize: 13,
-            //             fontWeight: FontWeight.w400,
-            //             color: Theme.of(context).hintColor,
-            //           ),
-            //         ),
-            //       ),
-            //     ],
-            //   ),
-            // ),
+            Positioned(
+              top: 27,
+              left: 65,
+              child: Row(
+                children: [
+                  if (user?.lastMessage != null &&
+                      user?.lastMessage?.createdBy != user!.uid)
+                    Row(
+                      children: [
+                        Icon(
+                          // user!.lastMessage!.status == MessageStatus.sent
+                          //     ? Icons.done_rounded
+                          //     : Icons.done_all_rounded,
+                          Icons.done_rounded,
+                          // color: user!.lastMessage!.status == MessageStatus.read
+                          //     ? Colors.blue
+                          //     : Theme.of(context).hintColor,
+                          color: Theme.of(context).hintColor,
+                          size: 18,
+                        ),
+                        const SizedBox(width: 5),
+                      ],
+                    ),
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width - 200,
+                    child: Text(
+                      user?.lastMessage?.message ??
+                          user?.email ??
+                          caption ??
+                          "",
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w400,
+                        color: Theme.of(context).hintColor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
 
             if (!user!.isUserExist)
               Positioned(

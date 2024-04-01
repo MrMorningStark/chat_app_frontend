@@ -49,6 +49,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
 
   @override
   void dispose() {
+    mySocketProvider.leaveChat(toUser.uid);
     chatController.dispose();
     super.dispose();
   }
