@@ -34,17 +34,10 @@ class MessageStatus {
 
 class SOCKET_ON {
   static const String INITIATE_CHAT = "initiateChat";
-  static const String CHAT_INITIATED = "chatInitiated";
   static const String LEAVE_CHAT = "leaveChat";
-  static const String JOIN_ROOM = "joinRoom";
   static const String SEND_MESSAGE = "sendMessage";
-  static const String RECEIVE_MESSAGE = "receiveMessage";
-  static const String MESSAGE_RECEIVED = "messageReceived";
-  static const String USER_ONLINE = "userOnline";
-  static const String USER_OFFLINE = "userOffline";
-  static const String USER_TYPING = "userTyping";
-  static const String USER_STOP_TYPING = "userStopTyping";
-  static const String USER_INACTIVE = "userInactive";
+  static const String USER_STATUS = "userStatus";
+  static const String MESSAGE_STATUS = "messageStatus";
 }
 
 class Routes {

@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+
 String generateConversationId(String uid1, String uid2) {
   List<String> sortedIds = [uid1, uid2]..sort();
   String sortedIdsString = sortedIds.join('-');
@@ -13,7 +15,9 @@ String formatDate(int millisecondsSinceEpoch) {
   return formattedDate;
 }
 
-String formatDateForRecentChats(int millisecondsSinceEpoch) {
+String formatDateForRecentChats(
+  int millisecondsSinceEpoch,
+) {
   // if message is sent today then show time and if yes then yesterday else date
   DateTime dateTime =
       DateTime.fromMillisecondsSinceEpoch(millisecondsSinceEpoch);
@@ -27,4 +31,24 @@ String formatDateForRecentChats(int millisecondsSinceEpoch) {
     formattedDate = "${dateTime.day}/${dateTime.month}/${dateTime.year}";
   }
   return formattedDate;
+}
+
+String formatDateForChats(int millisecondsSinceEpoch) {
+  DateTime messageDate =
+      DateTime.fromMillisecondsSinceEpoch(millisecondsSinceEpoch);
+  DateTime now = DateTime.now();
+
+  int differenceInDays = now.difference(messageDate).inDays;
+
+  if (differenceInDays == 0) {
+    return "Today";
+  } else if (differenceInDays == 1) {
+    return "Yesterday";
+  } else if (differenceInDays <= 4) {
+    DateFormat dayFormat = DateFormat('EEEE');
+    return dayFormat.format(messageDate);
+  } else {
+    DateFormat dateFormat = DateFormat('MMMM d, yyyy');
+    return dateFormat.format(messageDate);
+  }
 }

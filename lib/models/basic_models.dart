@@ -1,3 +1,5 @@
+import 'package:WhatsApp/enumeration.dart';
+
 class ApiResponse {
   final bool success;
   final dynamic data;
@@ -22,11 +24,13 @@ class Chat {
   final String message;
   final int createdAt;
   final String createdBy;
+  int status;
 
   Chat({
     required this.message,
     required this.createdAt,
     required this.createdBy,
+    required this.status,
   });
 
   factory Chat.fromJson(Map<String, dynamic> json) {
@@ -34,6 +38,7 @@ class Chat {
       message: json['message'] ?? "",
       createdAt: json['createdAt'] ?? DateTime.now().millisecondsSinceEpoch,
       createdBy: json['createdBy'] ?? json['fromUID'],
+      status: json['status'] ?? MessageStatus.sent,
     );
   }
 
@@ -42,12 +47,13 @@ class Chat {
       'message': message,
       'createdAt': createdAt,
       'createdBy': createdBy,
+      'status': status
     };
   }
 }
 
 class SocketService {
-  final Future<void> Function(String toUser) initiateChat;
+  final Future<void> Function(String toUser, String toUID) initiateChat;
   final void Function({required String toUID, required String message})
       sendMessage;
   final void Function(String toUID) leaveChat;

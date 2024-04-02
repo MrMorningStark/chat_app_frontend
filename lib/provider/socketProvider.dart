@@ -1,6 +1,8 @@
 import 'package:WhatsApp/api/api.dart';
 import 'package:WhatsApp/constant.dart';
+import 'package:WhatsApp/db/db.dart';
 import 'package:WhatsApp/enumeration.dart';
+import 'package:WhatsApp/helper/helper.dart';
 import 'package:WhatsApp/models/basic_models.dart';
 import 'package:WhatsApp/models/user_model.dart';
 import 'package:WhatsApp/provider/mainProvider.dart';
@@ -19,21 +21,40 @@ final socketProvider = Provider((ref) {
 
   MyUser currUser = ref.read(userProvider)!;
 
-  socket.on('connect', (_) {
-    print('Connected to the socket server');
-    //send currUser uid to server
-    socket.emit(SOCKET_ON.USER_ONLINE, {'uid': currUser.uid});
+  socket.onConnect((_) {
+    print('connected');
+    socket.emit(SOCKET_ON.USER_STATUS, {'uid': currUser.uid, 'online': true});
   });
 
-  Future<void> initiateChat(String conversationId) async {
+  Future<void> initiateChat(String conversationId, String toUID) async {
+    ref.read(currConversationID.notifier).state = conversationId;
+    List<Chat> last20mssg = await DatabaseHelper().getChat(conversationId);
+    if (last20mssg.isNotEmpty) {
+      ref.read(chatProvider.notifier).setChat(chats: last20mssg);
+    }
     ApiResponse apiResponse =
         await API.loadConversation(conversationId: conversationId);
     if (apiResponse.success) {
-      List<Chat> chats = List.from(apiResponse.data['conversation'])
+      List<Chat> chats = List.from(apiResponse.data['conversation'] ?? [])
           .map((e) => Chat.fromJson(e))
           .toList();
+      // check if last message is status is delivered
+      if (chats.isNotEmpty) {
+        Chat lastChat = chats.first;
+        if ((lastChat.status == MessageStatus.delivered ||
+                lastChat.status == MessageStatus.sent) &&
+            lastChat.createdBy != currUser.uid) {
+          socket.emit(SOCKET_ON.MESSAGE_STATUS, {
+            'toUID': toUID,
+            'conversationId': conversationId,
+            'status': MessageStatus.read
+          });
+        }
+      }
 
-      ref.read(chatProvider.notifier).setChat(chats);
+      ref
+          .read(chatProvider.notifier)
+          .setChat(chats: chats, conversationId: conversationId);
     }
   }
 
@@ -42,35 +63,52 @@ final socketProvider = Provider((ref) {
       'toUID': toUID,
       'fromUID': currUser.uid,
       'message': message,
-      'createdAt': DateTime.now().millisecondsSinceEpoch
+      'createdAt': DateTime.now().millisecondsSinceEpoch,
+      'status': MessageStatus.sent,
     };
     socket.emit(SOCKET_ON.SEND_MESSAGE, mssg);
     ref.read(chatProvider.notifier).addChat(Chat.fromJson(mssg));
   }
 
+  socket.on("statusUpdate-${currUser.uid}", (data) {
+    // conversationId | status
+    if (ref.read(currConversationID.notifier).state != null &&
+        data['conversationId'] == ref.read(currConversationID.notifier).state) {
+      ref
+          .read(chatProvider.notifier)
+          .changeChatStatus(data['conversationId'], data['status']);
+    }
+  });
+
   // Receive message that was sent by another user
-  socket.on(currUser.uid, (data) {
-    // toUID | fromUID | message | createdAt
+  socket.on(currUser.uid, (data) async {
+    // toUID | fromUID | message | createdAt | status
     playMessageRecievedSound();
     ref.read(chatProvider.notifier).addChat(Chat.fromJson(data));
+    ref.read(recentChatProvider.notifier).loadRecentChats();
+    String fromUid = data["fromUID"];
+    socket.emit('statusUpdate-$fromUid', {
+      "conversationId": generateConversationId(data["fromUID"], currUser.uid),
+      "status": MessageStatus.read
+    });
   });
 
   void leaveChat(String toUID) {
-    ref.read(chatProvider.notifier).setChat([]);
+    ref.read(chatProvider).clear();
     ref.read(recentChatProvider.notifier).loadRecentChats();
     // socket.emit(SOCKET_ON.LEAVE_CHAT, {"toUID": toUID});
     print('Left chat');
   }
 
-  socket.on("error", (data) {
+  socket.onError((_) {
     socket.connect();
   });
-  
+
   // when app goes in background or is closed disconnect from socket
-  socket.on("disconnect", (_) {
+  socket.onDisconnect((_) {
+    socket.emit(SOCKET_ON.USER_STATUS, {'uid': currUser.uid, 'online': false});
     print('Disconnected from the socket server');
     socket.disconnect();
-    socket.off(SOCKET_ON.MESSAGE_RECEIVED);
   });
 
   return SocketService(

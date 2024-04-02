@@ -6,9 +6,12 @@ import 'package:WhatsApp/models/user_model.dart';
 import 'package:WhatsApp/provider/mainProvider.dart';
 import 'package:WhatsApp/provider/socketProvider.dart';
 import 'package:WhatsApp/widgets/chatBubble.dart';
+import 'package:WhatsApp/widgets/chatDateDivider.dart';
 import 'package:WhatsApp/widgets/contactImage.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ChatPage extends ConsumerStatefulWidget {
@@ -158,60 +161,60 @@ class _ChatPageState extends ConsumerState<ChatPage> {
             ),
             child: Padding(
               padding: EdgeInsets.only(
-                  top: 0,
-                  left: 8,
-                  right: 8,
-                  bottom: MediaQuery.of(context).viewInsets.bottom + 3),
+                top: 0,
+                left: 8,
+                right: 8,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 3,
+              ),
               child: ListView.builder(
-                reverse: true,
-                padding: const EdgeInsets.only(bottom: 5),
-                shrinkWrap: true,
-                controller: chatScrollController,
-                itemCount: chats.length,
-                itemBuilder: (context, index) {
-                  //  if created at yesterday ,today or date then show time
-                  String prevFormattedDate = formatDateForRecentChats(
-                      chats[index != 0 ? index - 1 : 0].createdAt);
-                  String formattedDate =
-                      formatDateForRecentChats(chats[index].createdAt);
-                  if (prevFormattedDate.contains('M')) {
-                    prevFormattedDate = "Today";
-                  }
-                  if (formattedDate.contains('M')) {
-                    formattedDate = "Today";
-                  }
+                  reverse: true,
+                  padding: const EdgeInsets.only(bottom: 5),
+                  shrinkWrap: true,
+                  controller: chatScrollController,
+                  itemCount: chats.length,
+                  itemBuilder: (context, index) {
 
-                  if (prevFormattedDate != formattedDate) {
-                    return Column(
-                      children: [
-                        Text(formattedDate),
-                        ChatBubble(
-                          message: chats[index].message,
-                          type: chats[index].createdBy == currUser.uid
-                              ? MessageType.self
-                              : MessageType.other,
-                          status: MessageStatus.sent,
-                          showNip: index == chats.length - 1 ||
-                              chats[index + 1].createdBy !=
-                                  chats[index].createdBy,
-                          createdAt: chats[index].createdAt,
-                        )
-                      ],
-                    );
-                  } else {
-                    return ChatBubble(
+                    Widget chatBubble = ChatBubble(
                       message: chats[index].message,
                       type: chats[index].createdBy == currUser.uid
                           ? MessageType.self
                           : MessageType.other,
-                      status: MessageStatus.sent,
+                      status: chats[index].status,
                       showNip: index == chats.length - 1 ||
                           chats[index + 1].createdBy != chats[index].createdBy,
                       createdAt: chats[index].createdAt,
                     );
-                  }
-                },
-              ),
+
+                    // Get the message's date from the timestamp
+                    DateTime messageDate = DateTime.fromMillisecondsSinceEpoch(
+                        chats[index].createdAt);
+
+                    // Get the previous message's date
+                    DateTime? previousDate = chats.length > index + 1
+                        ? DateTime.fromMillisecondsSinceEpoch(
+                            chats[index + 1].createdAt)
+                        : null;
+
+                    if (previousDate != null) {
+                      // Check if the message's date is different from the previous message's date
+                      bool isNewDay = previousDate.day != messageDate.day ||
+                          previousDate.month != messageDate.month ||
+                          previousDate.year != messageDate.year;
+                      if (isNewDay) {
+                        return Column(
+                          children: [
+                            ChatDateDivider(
+                              date: formatDateForChats(
+                                  previousDate.millisecondsSinceEpoch),
+                            ),
+                            chatBubble,
+                          ],
+                        );
+                      }
+                    }
+
+                    return chatBubble;
+                  }),
             ),
           ),
           Positioned(

@@ -1,3 +1,4 @@
+import 'package:WhatsApp/enumeration.dart';
 import 'package:WhatsApp/helper/helper.dart';
 import 'package:WhatsApp/models/user_model.dart';
 import 'package:WhatsApp/pages/chat_page.dart';
@@ -44,9 +45,8 @@ class ContactCard extends ConsumerWidget {
           return;
         } else {
           MyUser currUser = ref.read(userProvider)!;
-          await ref
-              .read(socketProvider)
-              .initiateChat(generateConversationId(currUser.uid, user!.uid));
+          ref.read(socketProvider).initiateChat(
+              generateConversationId(currUser.uid, user!.uid), user!.uid);
           Navigator.push(context,
               MaterialPageRoute(builder: (_) => ChatPage(toUser: user!)));
         }
@@ -124,10 +124,10 @@ class ContactCard extends ConsumerWidget {
                     Row(
                       children: [
                         Icon(
-                          // user!.lastMessage!.status == MessageStatus.sent
-                          //     ? Icons.done_rounded
-                          //     : Icons.done_all_rounded,
-                          Icons.done_rounded,
+                          user!.lastMessage!.status == MessageStatus.sent
+                              ? Icons.done_rounded
+                              : Icons.done_all_rounded,
+                          // Icons.done_rounded,
                           // color: user!.lastMessage!.status == MessageStatus.read
                           //     ? Colors.blue
                           //     : Theme.of(context).hintColor,
