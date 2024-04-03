@@ -7,6 +7,7 @@ import 'package:WhatsApp/models/basic_models.dart';
 import 'package:WhatsApp/models/user_model.dart';
 import 'package:WhatsApp/provider/mainProvider.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
@@ -100,16 +101,27 @@ final socketProvider = Provider((ref) {
     print('Left chat');
   }
 
+  socket.on("hello${currUser.uid}", (data) {
+    print(data);
+    if (data.length > 1 && data[1] is Function) {
+      // Check if the second element is a function
+      Function ackFunction = data[1];
+      ackFunction('world'); // Call the ack function
+    } else {
+      print("Ack function not found or invalid data structure.");
+    }
+  });
+
   socket.onError((_) {
     socket.connect();
   });
 
-  // when app goes in background or is closed disconnect from socket
-  socket.onDisconnect((_) {
-    socket.emit(SOCKET_ON.USER_STATUS, {'uid': currUser.uid, 'online': false});
-    print('Disconnected from the socket server');
-    socket.disconnect();
+  socket.on('disconnect', (_) {
+    print('Socket disconnected');
   });
+
+  WidgetsBinding.instance
+      .addObserver(AppLifecycleListener(socket: socket, uid: currUser.uid));
 
   return SocketService(
     initiateChat: initiateChat,
@@ -124,4 +136,20 @@ playMessageRecievedSound() async {
     AssetSource('sounds/notification.mp3'),
     position: const Duration(milliseconds: 500),
   );
+}
+
+class AppLifecycleListener extends WidgetsBindingObserver {
+  final IO.Socket socket;
+  final String uid;
+
+  AppLifecycleListener({required this.socket, required this.uid});
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      socket.connect();
+      socket.emit(SOCKET_ON.USER_STATUS, {'uid': uid, 'online': true});
+      print('App is resumed');
+    }
+  }
 }
